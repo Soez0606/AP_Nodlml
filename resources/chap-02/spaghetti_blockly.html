@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Jeu Blockly — Trouver le spaghetti le plus long</title>
+
+  <!-- === Librairies Blockly === -->
+  <script src="https://unpkg.com/blockly/blockly.min.js"></script>
+  <script src="https://unpkg.com/blockly/blocks.min.js"></script>
+  <script src="https://unpkg.com/blockly/javascript.min.js"></script>
+
+  <style>
+    /* === Styles de base === */
+    :root {
+      --bg: #000;
+      --ink: #2a2a2a;
+      --accent: #ff8a65;
+      --mint: #7fd1ae;
+      --sky: #8ec9ff;
+      --rose: #ff9ec9;
+      --panel: #ffffff;
+      --shadow: 0 10px 24px rgba(0, 0, 0, .08);
+      --radius: 14px;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, var(--bg), #333);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      color: var(--ink);
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      grid-template-rows: auto 1fr auto;
+      gap: 16px;
+      padding: 16px;
+    }
+
+    header {
+      grid-column: 1 / -1;
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    header h1 {
+      font-size: 20px;
+      margin: 0;
+    }
+
+    #stageWrap,
+    #blocklyWrap {
+      background: var(--panel);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    #blocklyWrap {
+      display: flex;
+      flex-direction: column;
+    }
+
+    #blocklyDiv {
+      height: 480px;
+      width: 100%;
+    }
+
+    #toolRow {
+      padding: 10px;
+      display: flex;
+      gap: 8px;
+      border-top: 1px dashed #eee;
+      background: #fff;
+    }
+
+    button {
+      border: 0;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      transition: .15s;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      background: #ff784e;
+    }
+
+    button.ghost {
+      background: #eceff1;
+      color: #102027;
+    }
+
+    #stageWrap {
+      padding: 12px;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 8px;
+    }
+
+    #bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      height: 340px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 10px 12px;
+      border: 1px solid #f1f1f1;
+    }
+
+    .bar {
+      width: 26px;
+      background: linear-gradient(180deg, var(--mint), #41b385);
+      border-radius: 8px 8px 4px 4px;
+      position: relative;
+      transition: transform .15s;
+    }
+
+    .bar::after {
+      content: attr(data-value);
+      position: absolute;
+      top: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 12px;
+      background: #fff;
+      padding: 2px 6px;
+      border-radius: 8px;
+      border: 1px solid #eee;
+    }
+
+    .bar.current {
+      outline: 3px solid var(--sky);
+    }
+
+    .bar.ref {
+      outline: 3px solid var(--accent);
+    }
+
+    .bar.best {
+      background: linear-gradient(180deg, #ffd54f, #ffb300);
+    }
+
+    #legend {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .d-sky {
+      background: var(--sky);
+    }
+
+    .d-acc {
+      background: var(--accent);
+    }
+
+    .d-best {
+      background: #ffb300;
+    }
+
+    #log {
+      height: 90px;
+      overflow: auto;
+      font-family: monospace;
+      background: #fcfcfc;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      padding: 8px;
+    }
+
+    /* Réduire le texte des blocs et de la toolbox */
+    .blocklyText {
+      font-size: 10pt !important;
+    }
+
+    .blocklyTreeLabel {
+      font-size: 11pt !important;
+    }
+
+    .speech {
+      font-size: 14px;
+      color: #555;
+      padding: 10px;
+      background: #f9f9f9;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      margin: 10px 0;
+      line-height: 1.4;
+      max-width: 600px;
+      margin-left: auto;
+      margin-right: auto;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, .1);
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+
+    <h1><img src="./blockly-mini.png" alt=""> Spaghetti le plus long</h1>
+    Objectif : construire l’algorithme séquentiel pour trouver le spaghetti le plus grand du paquet.
+  </header>
+
+  <section id="blocklyWrap">
+    <div id="blocklyDiv"></div>
+    <div id="toolRow">
+      <button id="btnRun">Tester</button>
+      <button class="ghost" id="btnShuffle">Nouveau paquet</button>
+    </div>
+    <div class="speech">Indice : En utilisant les blocs des catégories <b>Action</b>, <b>Boucle</b> et <b>Condition</b>,
+      commence avec le spaghetti le plus long comme <b>référence</b>, puis parcoure la liste et <b>remplace la
+        référence</b> si tu trouves plus long.</div>
+  </section>
+
+  <section id="stageWrap">
+
+    <div id="bars"></div>
+    <div id="legend">
+      <span class="dot d-acc"></span>Plus long trouvé
+      <span class="dot d-sky"></span>Comparé
+      <span class="dot d-best"></span>Meilleur final
+    </div>
+    <pre id="log"></pre>
+  </section>
+  <br>
+
+  <script>
+    /**
+     * Objet principal du jeu.
+     * Gère :
+     * - La génération du paquet de spaghettis.
+     * - L'affichage graphique (barres).
+     * - L'enregistrement des étapes pour l'animation.
+     * - La vérification de la réponse.
+     */
+    const Game = {
+      liste: [],        // Tableau des longueurs de spaghettis
+      refIndex: null,   // Index du spaghetti le plus long trouvé jusqu'ici
+      steps: [],        // Liste des étapes pour rejouer l'animation
+      speed: 450,       // Vitesse de l'animation en ms
+
+      barsEl: document.getElementById('bars'),
+      logEl: document.getElementById('log'),
+
+      /**
+       * Génère un nouveau paquet aléatoire de spaghettis.
+       * @param {number} n - Nombre de spaghettis dans le paquet.
+       */
+      resetPaquet(n = 10) {
+        this.liste = Array.from({ length: n }, () => Math.floor(Math.random() * 20) + 10);
+        this.refIndex = null;
+        this.steps = [];
+        this.render();
+        this.log('Nouveau paquet : [' + this.liste.join(', ') + ']');
+      },
+
+      /**
+       * Met à jour l'affichage graphique des spaghettis.
+       * @param {?number} bestIndex - Index du spaghetti final le plus long.
+       * @param {?number} currentIndex - Index actuellement comparé.
+       */
+      render(bestIndex = null, currentIndex = null) {
+        this.barsEl.innerHTML = '';
+        const maxVal = Math.max(...this.liste);
+        this.liste.forEach((val, i) => {
+          const bar = document.createElement('div');
+          bar.className = 'bar';
+          bar.style.height = (val / (maxVal + 4) * 320 + 24) + 'px';
+          bar.dataset.value = val;
+          if (i === this.refIndex) bar.classList.add('ref');
+          if (i === currentIndex) bar.classList.add('current');
+          if (i === bestIndex) bar.classList.add('best');
+          this.barsEl.appendChild(bar);
+        });
+      },
+
+      /**
+       * Ajoute une ligne de texte au journal.
+       * @param {string} txt - Message à afficher.
+       */
+      log(txt) {
+        this.logEl.textContent += txt + "\n";
+        this.logEl.scrollTop = this.logEl.scrollHeight;
+      },
+
+      tailleListe() { return this.liste.length; },
+      longueur(i) { return this.liste[i]; },
+
+      /**
+       * Initialise le spaghetti le plus long avec un index donné.
+       * @param {number} i - Index choisi comme départ.
+       */
+      initialiserReferenceIndex(i) {
+        this.refIndex = i;
+        this.steps.push({ type: 'setRef', i });
+        this.log('Départ : spaghetti ' + i + ' (longueur ' + this.longueur(i) + ')');
+      },
+
+      /**
+       * Compare le spaghetti courant avec le plus long trouvé.
+       * @param {number} i - Index du spaghetti courant.
+       * @returns {boolean} - Vrai si plus long, sinon faux.
+       */
+      comparerAvec(i) {
+        this.steps.push({ type: 'compare', i });
+        return this.liste[i] > this.liste[this.refIndex];
+      },
+
+      /**
+       * Met à jour le spaghetti le plus long trouvé.
+       * @param {number} i - Nouvel index le plus long.
+       */
+      mettreAJourReference(i) {
+        this.refIndex = i;
+        this.steps.push({ type: 'update', i });
+        this.log('Nouveau plus long : spaghetti ' + i + ' (longueur ' + this.longueur(i) + ')');
+      },
+
+      /**
+       * Rejoue pas à pas les étapes de comparaison et de mise à jour.
+       */
+      async rejouer() {
+        if (!this.steps.length) { this.log('Aucune étape à rejouer.'); return; }
+        for (let s of this.steps) {
+          if (s.type === 'setRef') this.render(null, null);
+          if (s.type === 'compare') this.render(null, s.i);
+          if (s.type === 'update') this.render(null, s.i);
+          await new Promise(r => setTimeout(r, this.speed));
+          this.render(null, null);
+        }
+        this.render(this.refIndex, null);
+      },
+
+      /**
+       * Vérifie si le spaghetti trouvé est effectivement le plus long.
+       */
+      verifier() {
+        const vraiIndex = this.liste.indexOf(Math.max(...this.liste));
+        const ok = (vraiIndex === this.refIndex);
+        this.log(ok ? '✅ Correct !' : '❌ Incorrect, c’était ' + vraiIndex);
+        this.render(ok ? vraiIndex : null, null);
+      }
+    };
+
+    /* === Toolbox Blockly === */
+    const toolbox = {
+      "kind": "categoryToolbox",
+      "contents": [
+        {
+          "kind": "category", "name": "Action", "colour": "20",
+          "contents": [{ "kind": "block", "type": "init_longest_spaghetti" },
+          { "kind": "block", "type": "update_longest" }]
+        },
+        {
+          "kind": "category", "name": "Boucle", "colour": "210",
+          "contents": [{ "kind": "block", "type": "for_each_spaghetti" }]
+        },
+        {
+          "kind": "category", "name": "Condition", "colour": "120",
+          "contents": [
+            { "kind": "block", "type": "if_longer" }
+          ]
+        }
+      ]
+    };
+
+    /* === Générateurs cross-version === */
+    const JS = Blockly.JavaScript;
+    function registerGen(name, fn) {
+      JS[name] = fn;
+      if (JS.forBlock) JS.forBlock[name] = fn;
+    }
+
+    /* === Blocs Blockly personnalisés === */
+    Blockly.Blocks['init_longest_spaghetti'] = {
+      init: function () {
+        this.appendDummyInput().appendField("Commencer avec le premier spaghetti comme le plus long");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(20);
+      }
+    };
+    registerGen('init_longest_spaghetti', () => "Game.initialiserReferenceIndex(0);\n");
+
+    Blockly.Blocks['for_each_spaghetti'] = {
+      init: function () {
+        this.appendDummyInput().appendField("Pour chaque spaghetti du paquet");
+        this.appendStatementInput("DO").appendField("faire");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(210);
+      }
+    };
+    registerGen('for_each_spaghetti', block => {
+      const branch = JS.statementToCode(block, 'DO');
+      return `for (let i = 0; i < Game.tailleListe(); i++) {\n${branch}}\n`;
+    });
+
+    Blockly.Blocks['if_longer'] = {
+      init: function () {
+        this.appendDummyInput().appendField("Si ce spaghetti est plus long que le plus long trouvé");
+        this.appendStatementInput("DO").appendField("alors");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(120);
+      }
+    };
+    registerGen('if_longer', block => {
+      const branch = JS.statementToCode(block, 'DO');
+      return `if (Game.comparerAvec(i)) {\n${branch}}\n`;
+    });
+
+    Blockly.Blocks['update_longest'] = {
+      init: function () {
+        this.appendDummyInput().appendField("Remplacer le plus long trouvé par ce spaghetti");
+        this.setPreviousStatement(true, null);
+        this.setNextStatement(true, null);
+        this.setColour(0);
+      }
+    };
+    registerGen('update_longest', () => "Game.mettreAJourReference(i);\n");
+
+    /* === Initialisation de l'espace de travail Blockly === */
+    const workspace = Blockly.inject('blocklyDiv', { toolbox, renderer: 'zelos' });
+
+    /**
+     * Exécute le code Blockly généré, rejoue l'animation, puis vérifie le résultat.
+     */
+    async function runUserCode() {
+      Game.steps = [];
+      Game.logEl.textContent = '';
+      try {
+        const code = JS.workspaceToCode(workspace);
+        const fn = new Function('Game', code + '; return Game.refIndex;');
+        fn(Game);
+        await Game.rejouer();
+        Game.verifier();
+      } catch (e) {
+        Game.log('Erreur : ' + e.message);
+        console.error(e);
+      }
+    }
+
+    /* === Événements des boutons === */
+    document.getElementById('btnRun').addEventListener('click', runUserCode);
+    document.getElementById('btnShuffle').addEventListener('click', () => { Game.resetPaquet(); Game.logEl.textContent = ''; });
+
+    /* === Démarrage du jeu === */
+    Game.resetPaquet(10);
+  </script>
+</body>
+
+</html>
