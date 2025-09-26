@@ -31,6 +31,12 @@ create table role(
     nom text primary key
 );
 
+trigger classe_eleve after insert on utilisateur
+when new.role = 'eleve'
+begin
+    check cladde_id not null;
+end;
+
 insert into role(nom) values ('eleve');
 insert into role(nom) values ('professeur');
 insert into role(nom) values ('admin');
