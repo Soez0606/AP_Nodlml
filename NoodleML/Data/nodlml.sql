@@ -48,5 +48,5 @@ insert into utilisateur(email, mot_de_passe, nom, prenom, classe_id, role) value
 insert into classe(nom, prof, etablissement_num, chap_dispo) values ('sio2', 'leoburban27@gmail.com', 1, 2);
 
 
-insert into utilisateur(email, mot_de_passe, nom, prenom, classe_id, role) values ('joeylewis04032006@gmail.com', 'eleve', 'joey', 'lewis', 1, 'eleve');
+insert into utilisateur(email, mot_de_passe, nom, prenom, classe_id, role) values ('joeylewis04032006@gmail.com', 'eleve', null, null, 1, 'eleve');
 insert into utilisateur(email, mot_de_passe, nom, prenom, classe_id, role) values ('sebastien.Marchand.ens@gmail.com', 'admin', 'marchand', 'sebastien', null, 'admin');
