@@ -13,7 +13,7 @@
         <h1>Connexion</h1>
 
         <!-- Formulaire de connexion -->
-        <form id="loginForm" class="login-form">
+        <form id="loginForm" action="NoodleML/controller/connection.php" method="POST" class="login-form">
             <div>
                 <label for="email">Adresse e-mail</label>
                 <input type="email" id="email" name="email" required>
