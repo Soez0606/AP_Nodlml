@@ -1,0 +1,53 @@
+.nn-editor {
+  max-width: fit-content;
+  margin: 0 auto;   /* centre horizontalement */
+}
+
+.nn-editor-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-start;
+  justify-content: flex-start; /* ou center si tu préfères */
+}
+
+.nn-layer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 280px;
+  max-width: 320px;   /* optionnel */
+  flex: 0 0 auto;     /* ne pas s’étirer */
+  background: rgba(64, 64, 64, 0.1);
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.nn-layer h3 {
+  margin: 0 0 8px 0;
+}
+
+.nn-neuron {
+  border: 1px solid #555;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.nn-row {
+  margin: 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nn-row label {
+  min-width: 120px;
+}
+
+.nn-row input[type="number"] {
+  width: 84px;
+}
+
+.nn-toolbar {
+  margin-top: 8px;
+}

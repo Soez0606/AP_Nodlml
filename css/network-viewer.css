@@ -1,0 +1,28 @@
+canvas {
+    display: block;
+    margin: 20px auto;
+    border: 1px solid #444;
+    background: #1e1e1e;
+}
+
+button {
+    margin: 5px;
+    padding: 8px 12px;
+    background-color: #444;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #666;
+}
+
+.controlsLogicFunction {
+    color: white;
+    background: rgba(64, 64, 64, .75);
+    padding: 6px;
+    border-radius: 6px;
+    text-align: center;
+}
