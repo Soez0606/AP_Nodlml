@@ -1,7 +1,7 @@
 <?php
 require_once '../Model/BDD.php';
 use Model\BDD;
-$user = BDD::login($_POST['email'] ?? '', $_POST['mot_de_passe'] ?? '');
+$user = BDD::login($_POST['email'] ?? '', $_POST['password'] ?? '');
 if ($user) {
     echo "Connexion réussie";
     session_start();
