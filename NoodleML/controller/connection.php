@@ -3,12 +3,10 @@ require_once '../Model/BDD.php';
 use Model\BDD;
 $user = BDD::login($_POST['email'] ?? '', $_POST['password'] ?? '');
 if ($user) {
-    echo "Connexion réussie";
     session_start();
     $_SESSION['user'] = $user['email'];
-    //header('Location: compte.php');
+    header('Location: ../../index.php');
 } else {
-    echo "Échec de la connexion";
-    //header('Location: ../../index.html');
+    header('Location: ../../index.php');
 }
 ?>
