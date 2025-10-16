@@ -1,6 +1,7 @@
 <?php
 namespace Model;
 use SQLite3;
+use Eleve;
 
 class BDD
 {
@@ -18,7 +19,7 @@ class BDD
 
     }
 
-    static public function ajouter(string $email,?string $nom=null,?string $prenom=null,?int $classe_id=null,string $role='eleve')
+    static public function ajouter(string $email, ?string $nom = null, ?string $prenom = null, ?int $classe_id = null, string $role = 'eleve')
     {
         $bdd = new SQLite3(BDD::$cheminDeLaBDD);
         $insert = $bdd->prepare("insert into utilisateur (email, nom, prenom, classe_id, role) values (:email, :nom, :prenom, :classe_id, :role)");
@@ -56,20 +57,18 @@ class BDD
     {
         $bdd = new SQLite3(BDD::$cheminDeLaBDD);
         $reini = $bdd->prepare('UPDATE utilisateur SET mot_de_passe = null WHERE email = :email');
-        $reini->bindValue(1,$email,SQLITE3_INTEGER);
+        $reini->bindValue(1, $email, SQLITE3_INTEGER);
         $res = $reini->execute();
-        if ($reini)
-        {
+        if ($reini) {
             return 1;
-        }
-        else {
+        } else {
             $error = $bdd->lastErrorMsg();
             echo 'erreur lors de l\'ajout de l\'utilisateur. ' . $error;
             return -1;
         }
     }
 
-    static public function ajouterClasse(?string $nom=null,string $prof,string $etablissement_num,?int $chap_dispo=null)
+    static public function ajouterClasse(?string $nom = null, string $prof, string $etablissement_num, ?int $chap_dispo = null)
     {
         $bdd = new SQLite3(BDD::$cheminDeLaBDD);
         $insert = $bdd->prepare("insert into classe (nom, prof, etablissement_num, chap_dispo) values (:nom, :prof, :etablissement_num, :chap_dispo)");
@@ -86,7 +85,7 @@ class BDD
             return -1;
         }
     }
-    
+
     static public function supprimerClasse($id)
     {
         $bdd = new SQLite3(BDD::$cheminDeLaBDD);
@@ -102,7 +101,7 @@ class BDD
         }
     }
 
-    static public function ajouterEtablissement(?string $nom=null)
+    static public function ajouterEtablissement(?string $nom = null)
     {
         $bdd = new SQLite3(BDD::$cheminDeLaBDD);
         $insert = $bdd->prepare("insert into etablissement (nom) values (:nom)");
@@ -116,7 +115,7 @@ class BDD
             return -1;
         }
     }
-    
+
     static public function supprimerEtablissement($num)
     {
         $bdd = new SQLite3(BDD::$cheminDeLaBDD);
@@ -132,9 +131,64 @@ class BDD
         }
     }
 
-    static public function getEleve ($email)
+    static public function getEleve($email)
     {
-        $bdd = new SQLite3(BDD::$cheminDeLaBDD);
-        
+        $eleves = [];
+        $db = new SQLite3(BDD::$cheminDeLaBDD);
+        $stmt = $db->prepare("SELECT eleve.email as email, classe.nom as classe_nom, etablissement.num as etab_num
+                                FROM utilisateur as eleve 
+                                INNER JOIN classe 
+                                    ON eleve.classe_id = classe.id 
+                                INNER JOIN etablissement
+                                    ON classe.etablissement_num = etablissement.num
+                                INNER JOIN utilisateur as prof
+                                    ON classe.prof = prof.email
+                                WHERE prof.email = :email");
+        $stmt->bindValue(':email', $email, SQLITE3_TEXT);
+        $result = $stmt->execute();
+        if ($result) {
+            while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+                $etab_num = $row['etab_num'];
+                $classe_nom = $row['classe_nom'];
+                $eleve = new Eleve($row['email']);
+                if (!isset($eleves[$etab_num])) {
+                    $eleves[$etab_num] = [];
+                }
+                if (!isset($eleves[$etab_num][$classe_nom])) {
+                    $eleves[$etab_num][$classe_nom] = [];
+                }
+                $eleves[$etab_num][$classe_nom][] = $eleve;
+            }
+        }
+        return $eleves;
+    }
+
+    static public function getProf($email)
+    {
+        $profs = [];
+        $db = new SQLite3(BDD::$cheminDeLaBDD);
+        $stmt = $db->prepare("SELECT prof.email
+                                        from utilisateur as prof
+                                        where role = 'prof'");
+        $result = $stmt->execute();
+        $result = $result->fetchArray(SQLITE3_ASSOC);
+        if ($result) {
+            $profs[] = $result['email'];
+        }
+        return $profs;
+    }
+
+    static public function getChap_dispo($id)
+    {
+        $db = new SQLite3(BDD::$cheminDeLaBDD);
+        $stmt = $db->prepare("SELECT chap_dispo from classe where id = :id");
+        $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+        $result = $stmt->execute();
+        $result = $result->fetchArray(SQLITE3_ASSOC);
+        if ($result) {
+            return $result['chap_dispo'];
+        } else {
+            return null;
+        }
     }
 }
