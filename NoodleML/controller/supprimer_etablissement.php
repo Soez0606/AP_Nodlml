@@ -1,10 +1,10 @@
 <?php
-require_once '../model/BDD.php';
+require_once '../Model/BDD.php';
 
 use model\BDD;
 
 
-BDD::supprimerEtablissement($_POST['etab_id']);
-header('Location: dashboard.php');
+BDD::supprimerEtablissement($_POST['etab_num']);
+header('Location: ../../dashboard.php');
 
 ?>

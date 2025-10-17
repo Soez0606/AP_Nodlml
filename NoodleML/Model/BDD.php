@@ -25,10 +25,10 @@ class BDD
     {
         $bdd = new SQLite3(BDD::$cheminDeLaBDD);
         $insert = $bdd->prepare("insert into utilisateur (email, nom, prenom, classe_id, role) values (:email, :nom, :prenom, :classe_id, :role)");
-        $insert->bindValue(":email", $email, SQLITE3_INTEGER);
+        $insert->bindValue(":email", $email, SQLITE3_TEXT);
         $insert->bindValue(":nom", $nom, SQLITE3_TEXT);
         $insert->bindValue(":prenom", $prenom, SQLITE3_TEXT);
-        $insert->bindValue(":classe_id", $classe_id, SQLITE3_TEXT);
+        $insert->bindValue(":classe_id", $classe_id, SQLITE3_INTEGER);
         $insert->bindValue(":role", $role, SQLITE3_TEXT);
         $result = $insert->execute();
         if ($result) {
@@ -44,7 +44,7 @@ class BDD
     {
         $bdd = new SQLite3(BDD::$cheminDeLaBDD);
         $sup = $bdd->prepare('DELETE FROM utilisateur WHERE email = ?');
-        $sup->bindValue(1, $email, SQLITE3_INTEGER);
+        $sup->bindValue(1, $email, SQLITE3_TEXT);
         $res = $sup->execute();
         if ($res) {
             return 1;
@@ -59,7 +59,7 @@ class BDD
     {
         $bdd = new SQLite3(BDD::$cheminDeLaBDD);
         $reini = $bdd->prepare('UPDATE utilisateur SET mot_de_passe = null WHERE email = :email');
-        $reini->bindValue(1, $email, SQLITE3_INTEGER);
+        $reini->bindValue(1, $email, SQLITE3_TEXT);
         $res = $reini->execute();
         if ($reini) {
             return 1;
@@ -70,14 +70,24 @@ class BDD
         }
     }
 
+    static public function getClassesNomById($id)
+    {
+        $db = new SQLite3(self::$cheminDeLaBDD);
+        $stmt = $db->prepare("SELECT nom FROM classe WHERE id = :id LIMIT 1");
+        $stmt->bindValue(':id', intval($id), SQLITE3_INTEGER);
+        $result = $stmt->execute();
+        $row = $result ? $result->fetchArray(SQLITE3_ASSOC) : null;
+        return $row ? $row['nom'] : null;
+    }
+
     static public function ajouterClasse(string $nom, string $prof, string $etablissement_num, int $chap_dispo = 0)
     {
         $bdd = new SQLite3(BDD::$cheminDeLaBDD);
         $insert = $bdd->prepare("insert into classe (nom, prof, etablissement_num, chap_dispo) values (:nom, :prof, :etablissement_num, :chap_dispo)");
-        $insert->bindValue(":nom", $nom, SQLITE3_INTEGER);
+        $insert->bindValue(":nom", $nom, SQLITE3_TEXT);
         $insert->bindValue(":prof", $prof, SQLITE3_TEXT);
-        $insert->bindValue(":etablissement_num", $etablissement_num, SQLITE3_TEXT);
-        $insert->bindValue(":chap_dispo", $chap_dispo, SQLITE3_TEXT);
+        $insert->bindValue(":etablissement_num", $etablissement_num, SQLITE3_INTEGER);
+        $insert->bindValue(":chap_dispo", intval($chap_dispo), SQLITE3_INTEGER);
         $result = $insert->execute();
         if ($result) {
             return 1;
@@ -103,11 +113,21 @@ class BDD
         }
     }
 
+    static public function getEtablissementsNomById($id)
+    {
+        $db = new SQLite3(self::$cheminDeLaBDD);
+        $stmt = $db->prepare("SELECT nom FROM etablissement WHERE num = :id LIMIT 1");
+        $stmt->bindValue(':id', intval($id), SQLITE3_INTEGER);
+        $result = $stmt->execute();
+        $row = $result ? $result->fetchArray(SQLITE3_ASSOC) : null;
+        return $row ? $row['nom'] : null;
+    }
+
     static public function ajouterEtablissement(string $nom)
     {
         $bdd = new SQLite3(BDD::$cheminDeLaBDD);
-        $insert = $bdd->prepare("insert into etablissement (nom) values (:nom)");
-        $insert->bindValue(":nom", $nom, SQLITE3_INTEGER);
+        $insert = $bdd->prepare("INSERT into etablissement (nom) values (:nom)");
+        $insert->bindValue(":nom", $nom, SQLITE3_TEXT);
         $result = $insert->execute();
         if ($result) {
             return 1;
@@ -137,7 +157,7 @@ class BDD
     {
         $eleves = [];
         $db = new SQLite3(BDD::$cheminDeLaBDD);
-        $stmt = $db->prepare("SELECT eleve.email as email, classe.nom as classe_nom, etablissement.num as etab_num
+        $stmt = $db->prepare("SELECT eleve.email as email, classe.id as classe_nom, etablissement.num as etab_num
                                 FROM utilisateur as eleve 
                                 INNER JOIN classe 
                                     ON eleve.classe_id = classe.id 

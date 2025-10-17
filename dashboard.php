@@ -10,10 +10,11 @@ if (!isset($_SESSION['user']) || !isset($_SESSION['role'])) {
     exit();
 }
 
+$selectedEtab=$_GET['etab_num'] ?? null;
+$selectedClasse=$_GET['classe_id'] ?? null;
 $eleves = BDD::getEleve($_SESSION['user']);
 $userNom = $_SESSION['user'];
 $userRole = $_SESSION['role'];
-
 ?>
 <!DOCTYPE html>
 <html lang="fr">
@@ -35,19 +36,19 @@ $userRole = $_SESSION['role'];
             <div class="section">
                 <h3>Établissements</h3>
                 <ul class="list">
-                    <?php foreach ($etablissements as $etab): ?>
-                        <li class="<?php echo ($selectedEtab == $etab['num']) ? 'active' : ''; ?>">
-                            <a href="?etab_num=<?php echo $etab['num']; ?>">
-                                <?php echo htmlspecialchars($etab['nom']); ?>
+                    <?php foreach (array_keys($eleves) as $etab): ?>
+                        <li class="<?php echo ($selectedEtab == $etab) ? 'active' : ''; ?>">
+                            <a href="?etab_num=<?php echo $etab; ?>">
+                                <?php echo htmlspecialchars(BDD::getEtablissementsNomById($etab)); ?>
                             </a>
-                            <form action="supprimer_etablissement.php" method="post" class="inline-form">
-                                <input type="hidden" name="etab_num" value="<?php echo $etab['num']; ?>">
+                            <form action="NoodleML/controller/supprimer_etablissement.php" method="post" class="inline-form">
+                                <input type="hidden" name="etab_num" value="<?php echo $etab; ?>">
                                 <button type="submit" class="delete-btn" title="Supprimer">🗑️</button>
                             </form>
                         </li>
                     <?php endforeach; ?>
                 </ul>
-                <form action="ajout_etablissement.php" method="post" class="add-form">
+                <form action="NoodleML/controller/ajout_etablissement.php" method="post" class="add-form">
                     <input type="text" name="nom_etablissement" placeholder="Nom de l'établissement" required>
                     <button type="submit">Ajouter</button>
                 </form>
@@ -59,20 +60,22 @@ $userRole = $_SESSION['role'];
                 <section class="classes-section">
                     <h2>Classes</h2>
                     <ul class="list">
-                        <?php foreach ($classes as $classe): ?>
-                            <li class="<?php echo ($selectedClasse == $classe['id']) ? 'active' : ''; ?>">
-                                <a href="?etab_num=<?php echo $selectedEtab; ?>&classe_id=<?php echo $classe['id']; ?>">
-                                    <?php echo htmlspecialchars($classe['nom']); ?>
+                        <?php foreach (array_keys($eleves[$selectedEtab]) as $classe): ?>
+                            <li class="<?php echo ($selectedClasse == $classe) ? 'active' : ''; ?>">
+                                <a href="?etab_num=<?php echo $selectedEtab; ?>&classe_id=<?php echo $classe; ?>">
+                                    <?php echo htmlspecialchars(BDD::getClassesNomById($classe)); ?>
                                 </a>
-                                <form action="supprimer_classe.php" method="post" class="inline-form">
-                                    <input type="hidden" name="classe_id" value="<?php echo $classe['id']; ?>">
+                                <form action="NoodleML/controller/supprimer_classe.php" method="post" class="inline-form">
+                                    <input type="hidden" name="classe_id" value="<?php echo $classe; ?>">
                                     <button type="submit" class="delete-btn" title="Supprimer">🗑️</button>
                                 </form>
                             </li>
                         <?php endforeach; ?>
                     </ul>
-                    <form action="ajout_classe.php" method="post" class="add-form">
-                        <input type="hidden" name="etablissement_num" value="<?php echo $selectedEtab; ?>">
+                    <form action="NoodleML/controller/ajout_classe.php" method="post" class="add-form">
+                        <input type="hidden" name="etab_num" value="<?php echo $selectedEtab; ?>">
+                        <input type="hidden" name="email_prof" value="<?php echo $userNom; ?>">
+                        <input type="number" name="chap_dispo" value="5" >
                         <input type="text" name="nom_classe" placeholder="Nom de la classe" required>
                         <button type="submit">Ajouter</button>
                     </form>
@@ -86,16 +89,16 @@ $userRole = $_SESSION['role'];
                                     <span><?php echo htmlspecialchars($eleve['nom']); ?>
                                         (<?php echo htmlspecialchars($eleve['email']); ?>)</span>
                                     <div class="actions">
-                                        <form action="reset_password.php" method="post" class="inline-form">
+                                        <form action="NoodleML/controller/reset_password.php" method="post" class="inline-form">
                                             <input type="hidden" name="user_email" value="<?php echo $eleve['email']; ?>">
                                             <button type="submit" name="action" value="reset"
                                                 title="Réinitialiser mot de passe">🔑</button>
                                         </form>
-                                        <form action="supprimer_utilisateur.php" method="post" class="inline-form">
+                                        <form action="NoodleML/controller/supprimer_utilisateur.php" method="post" class="inline-form">
                                             <input type="hidden" name="user_email" value="<?php echo $eleve['email']; ?>">
                                             <button type="submit" name="action" value="delete" title="Supprimer">🗑️</button>
                                         </form>
-                                        <form action="ajout_eleve.php" method="post" class="add-form">
+                                        <form action="NoodleML/controller/ajout_eleve.php" method="post" class="add-form">
                                             <input type="hidden" name="classe_id" value="<?php echo $selectedClasse; ?>">
                                             <input type="hidden" name="role" value="eleve">
                                             <input type="email" name="email" placeholder="Email de l'élève" required>
