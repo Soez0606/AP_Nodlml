@@ -1,8 +1,8 @@
 <?php
-
+require_once 'NoodleML/Model/BDD.php';
 use Model\BDD;
+use Model\Eleve;
 session_start();
-require_once 'config.php'; // contient la connexion $db
 
 if (!isset($_SESSION['user']) || !isset($_SESSION['role'])) {
     header("Location: login.php");
@@ -36,12 +36,12 @@ $userRole = $_SESSION['role'];
                 <h3>Établissements</h3>
                 <ul class="list">
                     <?php foreach ($etablissements as $etab): ?>
-                        <li class="<?php echo ($selectedEtab == $etab['id']) ? 'active' : ''; ?>">
-                            <a href="?etab_id=<?php echo $etab['id']; ?>">
+                        <li class="<?php echo ($selectedEtab == $etab['num']) ? 'active' : ''; ?>">
+                            <a href="?etab_id=<?php echo $etab['num']; ?>">
                                 <?php echo htmlspecialchars($etab['nom']); ?>
                             </a>
                             <form action="supprimer_etablissement.php" method="post" class="inline-form">
-                                <input type="hidden" name="etab_id" value="<?php echo $etab['id']; ?>">
+                                <input type="hidden" name="etab_id" value="<?php echo $etab['num']; ?>">
                                 <button type="submit" class="delete-btn" title="Supprimer">🗑️</button>
                             </form>
                         </li>

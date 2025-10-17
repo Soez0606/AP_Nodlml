@@ -5,6 +5,6 @@ use model\BDD;
 
 
 $add = BDD::ajouter($_POST['email'], $_POST['nom'], $_POST['prenom'], $_POST['classe_id'],$_POST['role']);
-header('Location: page_admin.php');
+header('Location: dashboard.php');
 
 ?>

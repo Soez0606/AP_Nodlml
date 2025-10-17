@@ -1,11 +1,13 @@
 <?php
 namespace Model;
 use SQLite3;
-use Eleve;
+
+// require la classe Eleve (même namespace)
+require_once __DIR__ . '/Eleve.php';
 
 class BDD
 {
-    private static $cheminDeLaBDD = '../Data/nodlml.db';
+    private static $cheminDeLaBDD = '/home/lburban/Documents/ap_nodlml/NoodleML/Data/nodlml.db';
     static public function login($email, $mot_de_passe)
     {
 

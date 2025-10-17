@@ -1,4 +1,5 @@
 <?php
+namespace Model;
 class Eleve {
 
     private string $email;
