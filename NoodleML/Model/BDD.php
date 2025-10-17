@@ -70,7 +70,7 @@ class BDD
         }
     }
 
-    static public function ajouterClasse(?string $nom = null, string $prof, string $etablissement_num, ?int $chap_dispo = null)
+    static public function ajouterClasse(string $nom, string $prof, string $etablissement_num, int $chap_dispo = 0)
     {
         $bdd = new SQLite3(BDD::$cheminDeLaBDD);
         $insert = $bdd->prepare("insert into classe (nom, prof, etablissement_num, chap_dispo) values (:nom, :prof, :etablissement_num, :chap_dispo)");
@@ -103,7 +103,7 @@ class BDD
         }
     }
 
-    static public function ajouterEtablissement(?string $nom = null)
+    static public function ajouterEtablissement(string $nom)
     {
         $bdd = new SQLite3(BDD::$cheminDeLaBDD);
         $insert = $bdd->prepare("insert into etablissement (nom) values (:nom)");
@@ -192,5 +192,71 @@ class BDD
         } else {
             return null;
         }
+    }
+
+    static public function setChapDispo(int $id, ?int $chap_dispo)
+    {
+        $bdd = new SQLite3(BDD::$cheminDeLaBDD);
+        $upd = $bdd->prepare('UPDATE classe SET chap_dispo = :chap_dispo WHERE id = :id');
+        $upd->bindValue(':chap_dispo', $chap_dispo, SQLITE3_INTEGER);
+        $upd->bindValue(':id', $id, SQLITE3_INTEGER);
+        $res = $upd->execute();
+        return $res ? 1 : -1;
+    }
+
+        // Bloque un chapitre (ajoute le numéro dans chap_locked JSON)
+    static public function bloquerChapitre(int $classe_id, int $chap_num)
+    {
+        $bdd = new SQLite3(BDD::$cheminDeLaBDD);
+        $stmt = $bdd->prepare('SELECT chap_locked FROM classe WHERE id = :id');
+        $stmt->bindValue(':id', $classe_id, SQLITE3_INTEGER);
+        $r = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
+        $locked = json_decode($r['chap_locked'] ?? '[]', true);
+        if (!in_array($chap_num, $locked, true)) {
+            $locked[] = $chap_num;
+            $upd = $bdd->prepare('UPDATE classe SET chap_locked = :locked WHERE id = :id');
+            $upd->bindValue(':locked', json_encode(array_values($locked)), SQLITE3_TEXT);
+            $upd->bindValue(':id', $classe_id, SQLITE3_INTEGER);
+            $res = $upd->execute();
+            return $res ? 1 : -1;
+        }
+        return 1;
+    }
+
+    // Débloque un chapitre (retire le numéro de chap_locked)
+    static public function debloquerChapitre(int $classe_id, int $chap_num)
+    {
+        $bdd = new SQLite3(BDD::$cheminDeLaBDD);
+        $stmt = $bdd->prepare('SELECT chap_locked FROM classe WHERE id = :id');
+        $stmt->bindValue(':id', $classe_id, SQLITE3_INTEGER);
+        $r = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
+        $locked = json_decode($r['chap_locked'] ?? '[]', true);
+        $locked = array_values(array_filter($locked, function($c) use ($chap_num) { return $c !== $chap_num; }));
+        $upd = $bdd->prepare('UPDATE classe SET chap_locked = :locked WHERE id = :id');
+        $upd->bindValue(':locked', json_encode($locked), SQLITE3_TEXT);
+        $upd->bindValue(':id', $classe_id, SQLITE3_INTEGER);
+        $res = $upd->execute();
+        return $res ? 1 : -1;
+    }
+
+    // Vérifie si un chapitre est disponible pour une classe
+    static public function isChapDisponible(int $classe_id, int $chap_num) : bool
+    {
+        $bdd = new SQLite3(BDD::$cheminDeLaBDD);
+        $stmt = $bdd->prepare('SELECT chap_dispo, chap_locked FROM classe WHERE id = :id');
+        $stmt->bindValue(':id', $classe_id, SQLITE3_INTEGER);
+        $r = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
+        if (!$r) return false;
+
+        $chap_dispo = $r['chap_dispo'] !== null ? intval($r['chap_dispo']) : null;
+        $locked = json_decode($r['chap_locked'] ?? '[]', true);
+
+        // si chapitre explicitement bloqué
+        if (in_array($chap_num, $locked, true)) return false;
+
+        // si chap_dispo défini et chap_num > chap_dispo => bloqué
+        if ($chap_dispo !== null && $chap_num > $chap_dispo) return false;
+
+        return true;
     }
 }

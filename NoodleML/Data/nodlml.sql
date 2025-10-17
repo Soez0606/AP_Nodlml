@@ -15,7 +15,8 @@ create table classe(
     nom text,
     prof integer not null references utilisateur(email) on delete cascade,
     etablissement_num integer not null references etablissement(num) on delete cascade,
-    chap_dispo integer
+    chap_dispo integer,
+    chap_locked text default '[]'
 );
 
 create table utilisateur(
