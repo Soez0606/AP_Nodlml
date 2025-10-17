@@ -70,7 +70,7 @@ class BDD
         }
     }
 
-    static public function ajouterClasse(?string $nom = null, string $prof, string $etablissement_num, ?int $chap_dispo = null)
+    static public function ajouterClasse(string $nom, string $prof, string $etablissement_num, int $chap_dispo = 0)
     {
         $bdd = new SQLite3(BDD::$cheminDeLaBDD);
         $insert = $bdd->prepare("insert into classe (nom, prof, etablissement_num, chap_dispo) values (:nom, :prof, :etablissement_num, :chap_dispo)");
@@ -103,7 +103,7 @@ class BDD
         }
     }
 
-    static public function ajouterEtablissement(?string $nom = null)
+    static public function ajouterEtablissement(string $nom)
     {
         $bdd = new SQLite3(BDD::$cheminDeLaBDD);
         $insert = $bdd->prepare("insert into etablissement (nom) values (:nom)");

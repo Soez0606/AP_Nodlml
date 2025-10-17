@@ -4,7 +4,7 @@ require_once '../model/BDD.php';
 use model\BDD;
 
 
-$add = BDD::ajouter($_POST['email'], $_POST['nom'], $_POST['prenom'], $_POST['classe_id'],$_POST['role']);
+$add = BDD::ajouter($_POST['email'], $_POST['nom']?? null, $_POST['prenom']?? null, $_POST['classe_id']?? null,$_POST['role']);
 header('Location: dashboard.php');
 
 ?>
