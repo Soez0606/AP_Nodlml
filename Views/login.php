@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Connexion</title>
-    <link rel="stylesheet" href="css/style_login.css">
+    <link rel="stylesheet" href="content/css/style-login.css">
 </head>
 
 <body>
@@ -13,7 +13,7 @@
         <h1>Connexion</h1>
 
         <!-- Formulaire de connexion -->
-        <form id="loginForm" action="NoodleML/controller/connection.php" method="POST" class="login-form">
+        <form id="loginForm" action="validate.php" method="POST" class="login-form">
             <div>
                 <label for="email">Adresse e-mail</label>
                 <input type="email" id="email" name="email" required>
@@ -45,6 +45,7 @@
                 <a href="#" id="backToLoginLink">Retour à la connexion</a>
             </div>
         </form>
+        <button><a href="/">Retour</a></button>
     </div>
 
     <script>

@@ -7,6 +7,6 @@ $db = new BDD();
 
 
 $db->ajouterEtablissement($_POST['nom_etablissement']);
-header('Location: ../../dashboard.php');
+header('Location: /admin');
 
 ?>

@@ -7,6 +7,6 @@ $db = new BDD();
 
 
 $db->supprimerClasse($_POST['classe_id']);
-header('Location: ../../dashboard.php');
+header('Location: /admin');
 
 ?>

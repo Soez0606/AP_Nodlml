@@ -11,13 +11,13 @@ use NoodleML\Models\BDD;
 
 $db = new BDD();
 
-$log = $db->login('joeylewis04032006@gmail.com', 'eleve');
-// $router = new Router();
 
-// $req = Request::fromGlobals();
+$router = new Router();
 
-// $res = new Response();
+$req = Request::fromGlobals();
 
-// (require __DIR__ . '/../config/routes.php')($router);
+$res = new Response();
 
-// $router->dispatch($req,$res);
+(require __DIR__ . '/../config/routes.php')($router);
+
+$router->dispatch($req,$res);

@@ -7,6 +7,6 @@ $db = new BDD();
 
 
 $db->supprimerEtablissement($_POST['etab_num']);
-header('Location: ../../dashboard.php');
+header('Location: /admin');
 
 ?>

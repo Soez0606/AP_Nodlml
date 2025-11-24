@@ -1,18 +1,20 @@
 <?php
 
-require_once 'NoodleML/Model/BDD.php';
+require_once('../Models/BDD.php');
 
 session_start();
-use Model\BDD;
+use NoodleML\Models\BDD;
+
+$db = new BDD();
 
 if (!isset($_SESSION['user']) || !isset($_SESSION['role'])) {
-    header("Location: login.php");
+    header("Location: /login");
     exit();
 }
 
 $selectedEtab=$_GET['etab_num'] ?? null;
 $selectedClasse=$_GET['classe_id'] ?? null;
-$eleves = BDD::getEleve($_SESSION['user']);
+$eleves = $db->getEleveByClasse($selectedClasse);
 $userNom = $_SESSION['user'];
 $userRole = $_SESSION['role'];
 ?>
@@ -22,7 +24,7 @@ $userRole = $_SESSION['role'];
 <head>
     <meta charset="UTF-8">
     <title>Dashboard</title>
-    <link rel="stylesheet" href="css/styles-dashboard.css">
+    <link rel="stylesheet" href="content/css/styles-dashboard.css">
 </head>
 
 <body>
@@ -39,7 +41,7 @@ $userRole = $_SESSION['role'];
                     <?php foreach (array_keys($eleves) as $etab): ?>
                         <li class="<?php echo ($selectedEtab == $etab) ? 'active' : ''; ?>">
                             <a href="?etab_num=<?php echo $etab; ?>">
-                                <?php echo htmlspecialchars(BDD::getEtablissementsNomById($etab)); ?>
+                                <?php echo htmlspecialchars($db->getEtablissementsNomById($etab)); ?>
                             </a>
                             <form action="NoodleML/controller/supprimer_etablissement.php" method="post" class="inline-form">
                                 <input type="hidden" name="etab_num" value="<?php echo $etab; ?>">
@@ -53,6 +55,7 @@ $userRole = $_SESSION['role'];
                     <button type="submit">Ajouter</button>
                 </form>
             </div>
+            <button style="background-color: aqua;"><a href="/">Retour</a></button>
         </aside>
         <!-- === Main (Droite) === -->
         <main class="main-content">
@@ -63,7 +66,7 @@ $userRole = $_SESSION['role'];
                         <?php foreach (array_keys($eleves[$selectedEtab]) as $classe): ?>
                             <li class="<?php echo ($selectedClasse == $classe) ? 'active' : ''; ?>">
                                 <a href="?etab_num=<?php echo $selectedEtab; ?>&classe_id=<?php echo $classe; ?>">
-                                    <?php echo htmlspecialchars(BDD::getClassesNomById($classe)); ?>
+                                    <?php echo htmlspecialchars($db->getClassesNomById($classe)); ?>
                                 </a>
                                 <form action="NoodleML/controller/supprimer_classe.php" method="post" class="inline-form">
                                     <input type="hidden" name="classe_id" value="<?php echo $classe; ?>">
