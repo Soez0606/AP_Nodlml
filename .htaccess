@@ -1,0 +1,14 @@
+RewriteEngine On
+
+# Chapitre 4 : accès avec pass=mdpchap4
+RewriteCond %{REQUEST_URI} ^/chap-04-perceptron-et-portes-logiques\.html$
+RewriteCond %{QUERY_STRING} !(^|&)pass=pass1234(&|$)
+RewriteRule ^ - [F]
+
+# Chapitre 5 : accès avec pass=mdpchap5
+RewriteCond %{REQUEST_URI} ^/chap-05-reseaux-de-neurones-multicouches\.html$
+RewriteCond %{QUERY_STRING} !(^|&)pass=pass12345(&|$)
+RewriteRule ^ - [F]
+
+# Page personnalisée pour l'erreur 403
+ErrorDocument 403 /public/acces-interdit.html
