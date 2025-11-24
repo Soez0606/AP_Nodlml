@@ -1,10 +1,12 @@
 <?php
 require_once '../Model/BDD.php';
 
-use model\BDD;
+use NoodleML\Models\BDD;
+
+$db = new BDD();
 
 
-BDD::supprimerEtablissement($_POST['etab_num']);
+$db->supprimerEtablissement($_POST['etab_num']);
 header('Location: ../../dashboard.php');
 
 ?>

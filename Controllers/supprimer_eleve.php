@@ -1,9 +1,11 @@
 <?php
 require_once '../Model/BDD.php';
 
-use model\BDD;
+use NoodleML\Models\BDD;
 
-BDD::supprimer($_POST['user_id'] ?? null);
+$db = new BDD();
+
+$db->supprimerEleve($_POST['user_id'] ?? null);
 header('Location: ../../dashboard.php');
 
 ?>
