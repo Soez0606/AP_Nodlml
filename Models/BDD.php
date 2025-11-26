@@ -16,21 +16,25 @@ class BDD
 
     public function login($email, $mdp)
     {
-        $stmt = $this->db->prepare('SELECT * FROM utilisateur WHERE email = :email AND mot_de_passe = :mdp');
+        $stmt = $this->db->prepare('SELECT * FROM utilisateur WHERE email = :email');
         if (!$stmt)
         {
             throw new Exception('Failed to prepare statement : ' . $this->db->lastErrorMsg());
         }
         $stmt->bindValue(':email', $email, SQLITE3_TEXT);
-        $stmt->bindValue(':mdp', $mdp, SQLITE3_TEXT);
         $result = $stmt->execute();
         if (!$result)
         {
             throw new Exception('Failed to execute query : ' . $this->db->lastErrorMsg());
         }
         $user = $result->fetchArray(SQLITE3_ASSOC);
-        return $user;
+        if ($user && password_verify($mdp, $user['mot_de_passe'])) {
+            return $user;
+        }
+        return false;        
     }
+
+    
 
     public function addEleve(string $email, string $password, ?string $nom = null, ?string $prenom = null, ?int $classe_id = null, string $role = 'eleve')
     {
@@ -85,14 +89,14 @@ class BDD
         return true;
     }
 
-    public function getClassesNomByID($id)
+    public function getClassesNomByEtablissement($etablissement)
     {
-        $stmt = $this->db->prepare('SELECT nom FROM classe WHERE id = :id');
+        $stmt = $this->db->prepare('SELECT nom FROM classe WHERE $etablissement_num = :$etablissement');
         if (!$stmt)
         {
             throw new Exception('Failed to prepare statement : ' . $this->db->lastErrorMsg());
         }
-        $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+        $stmt->bindValue(':$etablissement', $etablissement, SQLITE3_INTEGER);
         $result = $stmt->execute();
         if (!$result)
         {
@@ -138,14 +142,14 @@ class BDD
         }
     }
 
-    public function getEtablissementsNomById($id)
+    public function getEtablissementsNomByProf($userNom)
     {
-        $stmt = $this->db->prepare('SELECT nom FROM etablissement WHERE id = :id');
+        $stmt = $this->db->prepare('SELECT etablissement.nom FROM etablissement,classe WHERE classe.etablissement_num = etablissement.id AND classe.prof = :prof');
         if (!$stmt)
         {
             throw new Exception('Failed to prepare statement : ' . $this->db->lastErrorMsg());
         }
-        $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+        $stmt->bindValue(':prof', $userNom, SQLITE3_INTEGER);
         $result = $stmt->execute();
         if ($result)
         {
@@ -242,75 +246,106 @@ class BDD
         }
     }
 
-    static public function getChap_dispo($id)
+    public function getChapDispo($id)
     {
-        $db = new SQLite3(BDD::$cheminDeLaBDD);
-        $stmt = $db->prepare("SELECT chap_dispo from classe where id = :id");
+        $stmt = $this->db->prepare("SELECT chap_dispo FROM classe WHERE id = :id");
+        if (!$stmt) {
+            throw new Exception('Failed to prepare statement : ' . $this->db->lastErrorMsg());
+        }
+        $stmt->bindValue(':id', $id, SQLITE3_ASSOC);
+        $result = $stmt->execute();
+        if (!$result) {
+            throw new Exception('Failed to execute query : ' . $this->db->lastErrorMsg());
+        }
+        $result = $result->fetchArray(SQLITE3_ASSOC);
+        return $result['chap_dispo'];
+    }
+
+    public function setChapDispo($id, $chap_dispo)
+    {
+        $stmt = $this->db->prepare('UPDATE classe SET chap_dispo = :chap_dispo WHERE id = :id');
+        if (!$stmt) {
+            throw new Exception('Failed to prepare statement : ' . $this->db->lastErrorMsg());
+        }
+        $stmt->bindValue(':chap_dispo', $chap_dispo, SQLITE3_INTEGER);
         $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
         $result = $stmt->execute();
-        $result = $result->fetchArray(SQLITE3_ASSOC);
-        if ($result) {
-            return $result['chap_dispo'];
-        } else {
-            return null;
+        if (!$result) {
+            throw new Exception('Failed to execute query : ' . $this->db->lastErrorMsg());
         }
+        return true;
     }
 
-    static public function setChapDispo(int $id, ?int $chap_dispo)
+    public function bloquerChapitre($classe_id, $chap_num)
     {
-        $bdd = new SQLite3(BDD::$cheminDeLaBDD);
-        $upd = $bdd->prepare('UPDATE classe SET chap_dispo = :chap_dispo WHERE id = :id');
-        $upd->bindValue(':chap_dispo', $chap_dispo, SQLITE3_INTEGER);
-        $upd->bindValue(':id', $id, SQLITE3_INTEGER);
-        $res = $upd->execute();
-        return $res ? 1 : -1;
-    }
-
-        // Bloque un chapitre (ajoute le numéro dans chap_locked JSON)
-    static public function bloquerChapitre(int $classe_id, int $chap_num)
-    {
-        $bdd = new SQLite3(BDD::$cheminDeLaBDD);
-        $stmt = $bdd->prepare('SELECT chap_locked FROM classe WHERE id = :id');
+        $stmt = $this->db->prepare('SELECT chapçlocked FROM classe WHERE id = :id');
+        if (!$stmt) {
+            throw new Exception('Failed to prepare statement : ' . $this->db->lastErrorMsg());
+        }
         $stmt->bindValue(':id', $classe_id, SQLITE3_INTEGER);
-        $r = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
-        $locked = json_decode($r['chap_locked'] ?? '[]', true);
+        $result = $stmt->execute();
+        if (!$result) {
+            throw new Exception('Failed to execute query : ' . $this->db->lastErrorMsg());
+        }
+        $result = $result->fetchArray(SQLITE3_ASSOC);
+        $locked = json_decode($result['chap_locked'] ?? '[]', true);
         if (!in_array($chap_num, $locked, true)) {
             $locked[] = $chap_num;
-            $upd = $bdd->prepare('UPDATE classe SET chap_locked = :locked WHERE id = :id');
-            $upd->bindValue(':locked', json_encode(array_values($locked)), SQLITE3_TEXT);
-            $upd->bindValue(':id', $classe_id, SQLITE3_INTEGER);
-            $res = $upd->execute();
-            return $res ? 1 : -1;
+            $upd_stmt = $this->db->prepare('UPDATE classe SET chap_locked = :locked WHERE id = :id');
+            if (!$upd_stmt) {
+                throw new Exception('Failed to prepare update statement : ' . $this->db->lastErrorMsg());
+            }
+            $upd_stmt->bindValue(':locked', json_encode(array_values($locked)), SQLITE3_TEXT);
+            $upd_stmt->bindValue(':id', $classe_id, SQLITE3_INTEGER);
+            $upd_result = $upd_stmt->execute();
+            if (!$upd_result) {
+                throw new Exception('Failed to execute query : ' . $this->db->lastErrorMsg());
+            }
+            return true;
         }
-        return 1;
+        return true;
     }
 
-    // Débloque un chapitre (retire le numéro de chap_locked)
-    static public function debloquerChapitre(int $classe_id, int $chap_num)
+    public function debloquerChapitre($classe_id, $chap_num)
     {
-        $bdd = new SQLite3(BDD::$cheminDeLaBDD);
-        $stmt = $bdd->prepare('SELECT chap_locked FROM classe WHERE id = :id');
+        $stmt = $this->db->prepare('SELECT chap_locked FROM classe WHERE id = :id');
+        if (!$stmt) {
+            throw new Exception('Failed to prepare statement : ' . $this->db->lastErrorMsg());
+        }
         $stmt->bindValue(':id', $classe_id, SQLITE3_INTEGER);
-        $r = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
-        $locked = json_decode($r['chap_locked'] ?? '[]', true);
-        $locked = array_values(array_filter($locked, function($c) use ($chap_num) { return $c !== $chap_num; }));
-        $upd = $bdd->prepare('UPDATE classe SET chap_locked = :locked WHERE id = :id');
-        $upd->bindValue(':locked', json_encode($locked), SQLITE3_TEXT);
-        $upd->bindValue(':id', $classe_id, SQLITE3_INTEGER);
-        $res = $upd->execute();
-        return $res ? 1 : -1;
+        $result = $stmt->execute();
+        if (!$result) {
+            throw new Exception('Failed to execute query : ' . $this->db->lastErrorMsg());
+        }
+        $result = $result->fetchArray(SQLITE3_ASSOC);
+        $locked = json_decode($result['chap_locked'] ?? '[]', true);
+        $locked = array_values(array_filter($locked, function($c) use ($chap_num) {return $c !== $chap_num; }));
+        $upd_stmt = $this->db->prepare('UPDATE classe SET chap_locked = :locked WHERE id = :id');
+        if (!$upd_stmt) {
+            throw new Exception('Failed to prepare update statement : ' . $this->db->lastErrorMsg());
+        }
+        $upd_stmt->bindValue(':locked', json_encode($locked), SQLITE3_TEXT);
+        $upd_stmt->bindValue(':id', $classe_id, SQLITE3_INTEGER);
+        $upd_result = $upd_stmt->execute();
+        if (!$upd_result) {
+            throw new Exception('Failed to execute update query : ' . $this->db->lastErrorMsg());
+        }
+        return true;
     }
 
-    // Vérifie si un chapitre est disponible pour une classe
-    static public function isChapDisponible(int $classe_id, int $chap_num) : bool
+    public function isChapDispo($classe_id, $chap_num) 
     {
-        $bdd = new SQLite3(BDD::$cheminDeLaBDD);
-        $stmt = $bdd->prepare('SELECT chap_dispo, chap_locked FROM classe WHERE id = :id');
+        $stmt = $this->db->prepare('SELECT chap_dispo, chap_locked FROM classe WHERE id = :id');
+        if (!$stmt) {
+            throw new Exception('Failed to prepare statement : ' . $this->db->lastErrorMsg());
+        }
         $stmt->bindValue(':id', $classe_id, SQLITE3_INTEGER);
-        $r = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
-        if (!$r) return false;
-
-        $chap_dispo = $r['chap_dispo'] !== null ? intval($r['chap_dispo']) : null;
+        $result = $stmt->execute();
+        if (!$result) {
+            throw new Exception('Failed to execute query : ' . $this->db->lastErrorMsg());
+        }
+        $result = $result->fetchArray(SQLITE3_ASSOC);
+        $chap_dispo = $result['chap_dispo'] !== null ? intval($result['chap_dispo']) : null;
         $locked = json_decode($r['chap_locked'] ?? '[]', true);
 
         // si chapitre explicitement bloqué
@@ -319,6 +354,21 @@ class BDD
         // si chap_dispo défini et chap_num > chap_dispo => bloqué
         if ($chap_dispo !== null && $chap_num > $chap_dispo) return false;
 
+        return true;
+    }
+
+    public function register($email, $mdp)
+    {
+        $stmt = $this->db->prepare('UPDATE utilisateur SET mot_de_passe = :mdp WHERE email = :email');
+        if (!$stmt) {
+            throw new Exception('Failed to prepare statement : ' . $this->db->lastErrorMsg());
+        }
+        $stmt->bindValue(':email', $email, SQLITE3_TEXT);
+        $stmt->bindValue(':mdp', password_hash($mdp, PASSWORD_BCRYPT), SQLITE3_TEXT);
+        $result = $stmt->execute();
+        if (!$result) {
+            throw new Exception('Failed to execute query : ' . $this->db->lastErrorMsg());
+        }
         return true;
     }
 }

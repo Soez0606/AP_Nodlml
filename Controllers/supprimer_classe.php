@@ -1,10 +1,12 @@
 <?php
 require_once '../Model/BDD.php';
 
-use model\BDD;
+use NoodleML\Models\BDD;
+
+$db = new BDD();
 
 
-BDD::supprimerClasse($_POST['classe_id']);
-header('Location: ../../dashboard.php');
+$db->supprimerClasse($_POST['classe_id']);
+header('Location: /admin');
 
 ?>

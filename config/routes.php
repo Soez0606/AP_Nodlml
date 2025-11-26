@@ -38,7 +38,6 @@ return function (Router $router): callable {
 
     $router->get('/login', fn(Request $q, Response $s) => $admin->login($q, $s));
 
-    // TODO Dashboard à implémenter
     $router->get('/admin', fn(Request $q, Response $s) => $admin->admin($q, $s));
 
     return fn() => null;
