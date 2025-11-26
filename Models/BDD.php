@@ -34,6 +34,8 @@ class BDD
         return false;        
     }
 
+    
+
     public function addEleve(string $email, string $password, ?string $nom = null, ?string $prenom = null, ?int $classe_id = null, string $role = 'eleve')
     {
         $stmt = $this->db->prepare('INSERT INTO utilisateur (email, mot_de_passe, nom, prenom, classe_id, role) values (:email, :mdp, :nom, :prenom, :classe_id, :role)');
@@ -87,14 +89,14 @@ class BDD
         return true;
     }
 
-    public function getClassesNomByID($id)
+    public function getClassesNomByEtablissement($etablissement)
     {
-        $stmt = $this->db->prepare('SELECT nom FROM classe WHERE id = :id');
+        $stmt = $this->db->prepare('SELECT nom FROM classe WHERE $etablissement_num = :$etablissement');
         if (!$stmt)
         {
             throw new Exception('Failed to prepare statement : ' . $this->db->lastErrorMsg());
         }
-        $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+        $stmt->bindValue(':$etablissement', $etablissement, SQLITE3_INTEGER);
         $result = $stmt->execute();
         if (!$result)
         {
@@ -140,14 +142,14 @@ class BDD
         }
     }
 
-    public function getEtablissementsNomById($id)
+    public function getEtablissementsNomByProf($userNom)
     {
-        $stmt = $this->db->prepare('SELECT nom FROM etablissement WHERE id = :id');
+        $stmt = $this->db->prepare('SELECT etablissement.nom FROM etablissement,classe WHERE classe.etablissement_num = etablissement.id AND classe.prof = :prof');
         if (!$stmt)
         {
             throw new Exception('Failed to prepare statement : ' . $this->db->lastErrorMsg());
         }
-        $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
+        $stmt->bindValue(':prof', $userNom, SQLITE3_INTEGER);
         $result = $stmt->execute();
         if ($result)
         {
