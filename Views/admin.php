@@ -7,7 +7,7 @@ use NoodleML\Models\BDD;
 
 $db = new BDD();
 
-if (!isset($_SESSION['user']) || !isset($_SESSION['role'])) {
+if (!isset($_SESSION['user']) || !isset($_SESSION['role']) || $_SESSION['role'] === 'eleve') {
     header("Location: /login");
     exit();
 }
