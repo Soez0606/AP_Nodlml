@@ -278,7 +278,7 @@ class BDD
 
     public function bloquerChapitre($classe_id, $chap_num)
     {
-        $stmt = $this->db->prepare('SELECT chapçlocked FROM classe WHERE id = :id');
+        $stmt = $this->db->prepare('SELECT chaplocked FROM classe WHERE id = :id');
         if (!$stmt) {
             throw new Exception('Failed to prepare statement : ' . $this->db->lastErrorMsg());
         }

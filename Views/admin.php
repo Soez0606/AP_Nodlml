@@ -41,7 +41,7 @@ $userRole = $_SESSION['role'];
                     <?php foreach (array_keys($eleves) as $etab): ?>
                         <li class="<?php echo ($selectedEtab == $etab) ? 'active' : ''; ?>">
                             <a href="?etab_num=<?php echo $etab; ?>">
-                                <?php echo htmlspecialchars($db->getEtablissementsNomById($etab)); ?>
+                                <?php echo htmlspecialchars($db->getEtablissementsNomByProf($etab)); ?>
                             </a>
                             <form action="NoodleML/controller/supprimer_etablissement.php" method="post" class="inline-form">
                                 <input type="hidden" name="etab_num" value="<?php echo $etab; ?>">
@@ -66,7 +66,7 @@ $userRole = $_SESSION['role'];
                         <?php foreach (array_keys($eleves[$selectedEtab]) as $classe): ?>
                             <li class="<?php echo ($selectedClasse == $classe) ? 'active' : ''; ?>">
                                 <a href="?etab_num=<?php echo $selectedEtab; ?>&classe_id=<?php echo $classe; ?>">
-                                    <?php echo htmlspecialchars($db->getClassesNomById($classe)); ?>
+                                    <?php echo htmlspecialchars($db->getClassesNomByEtablissement($classe)); ?>
                                 </a>
                                 <form action="NoodleML/controller/supprimer_classe.php" method="post" class="inline-form">
                                     <input type="hidden" name="classe_id" value="<?php echo $classe; ?>">
