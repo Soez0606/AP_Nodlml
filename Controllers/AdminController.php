@@ -23,4 +23,9 @@ final class AdminController
     {
         $s->html(View::render('admin.php'));
     }
+
+    public function test(Request $q, Response $s)
+    {
+        $s->html(View::render('admin.php'));
+    }
 }
