@@ -91,12 +91,12 @@ class BDD
 
     public function getClassesNomByEtablissement($etablissement)
     {
-        $stmt = $this->db->prepare('SELECT nom FROM classe WHERE $etablissement_num = :$etablissement');
+        $stmt = $this->db->prepare('SELECT nom FROM classe WHERE etablissement_num = :etablissement');
         if (!$stmt)
         {
             throw new Exception('Failed to prepare statement : ' . $this->db->lastErrorMsg());
         }
-        $stmt->bindValue(':$etablissement', $etablissement, SQLITE3_INTEGER);
+        $stmt->bindValue(':etablissement', $etablissement, SQLITE3_INTEGER);
         $result = $stmt->execute();
         if (!$result)
         {
@@ -219,7 +219,8 @@ class BDD
                 $eleve = array(
                     'email' => $row['email'],
                     'classe_nom' => $row['classe_nom'],
-                    'etab_nom' => $row['etablissement_nom']
+                    'etab_nom' => $row['etablissement_nom'],
+                    'classe_id' => $row['classe_id']
                 );
                 $eleves[] = $eleve;
             }

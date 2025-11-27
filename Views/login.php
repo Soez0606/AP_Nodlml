@@ -33,7 +33,7 @@
     <!-- Feuille de style -->
     <!-- <link rel="stylesheet" href="content/css/style-noodleml.css"> -->
     <link rel="icon" href="content/resources/NoodleML.png" type="image/png">
-    <link rel="stylesheet" href="content/css/styles-dashboard.css">
+    <link rel="stylesheet" href="content/css/style-login.css">
 </head>
 
 <body>
