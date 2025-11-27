@@ -185,12 +185,12 @@ class BDD
     {
         // On récupère les établissements (num, nom) liés aux classes du prof (par email)
         $stmt = $this->db->prepare('
-            SELECT e.num AS id, e.nom 
+            SELECT e.id, e.nom 
             FROM etablissement AS e
-            INNER JOIN classe AS c ON c.etablissement_num = e.num
+            INNER JOIN classe AS c ON c.etablissement_num = e.id
             WHERE c.prof = :prof
-            GROUP BY e.num, e.nom
-            ORDER BY e.nom
+            GROUP BY e.id, e.nom
+            ORDER BY e.id
         ');
         if (!$stmt) {
             throw new Exception('Failed to prepare statement : ' . $this->db->lastErrorMsg());
@@ -248,7 +248,7 @@ class BDD
                    classe.id as classe_id, classe.nom as classe_nom, etab.nom as etablissement_nom
             FROM utilisateur AS eleve
             INNER JOIN classe ON eleve.classe_id = classe.id
-            INNER JOIN etablissement AS etab ON classe.etablissement_num = etab.num
+            INNER JOIN etablissement AS etab ON classe.etablissement_num = etab.id
             WHERE eleve.classe_id = :classe_id
         ");
         if (!$stmt) {

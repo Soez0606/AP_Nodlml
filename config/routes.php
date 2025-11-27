@@ -40,7 +40,7 @@ return function (Router $router): callable {
 
     $router->get('/admin', fn(Request $q, Response $s) => $admin->admin($q, $s));
 
-    $router->get('/test', fn(Request $q, Response $s) => $admin->test($q, $s));
+    
 
     return fn() => null;
 };
