@@ -1,6 +1,6 @@
 <?php
 
-require_once('../Models/BDD.php');
+require_once '../Models/BDD.php';
 
 session_start();
 use NoodleML\Models\BDD;
@@ -17,13 +17,16 @@ $selectedClasse=$_GET['classe_id'] ?? null;
 $eleves = $db->getEleveByClasse($selectedClasse);
 $userNom = $_SESSION['user'];
 $userRole = $_SESSION['role'];
+$etabs = $db->getEtablissementsNomByProf($userNom);
+$etabsId = $etabs['id'];
+$etabsNom = $etabs['nom'];
 ?>
 <!DOCTYPE html>
 <html lang="fr">
 
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard</title>
+    <title>Dashboard - NoodleML</title>
     <link rel="stylesheet" href="content/css/styles-dashboard.css">
 </head>
 
@@ -38,10 +41,14 @@ $userRole = $_SESSION['role'];
             <div class="section">
                 <h3>Établissements</h3>
                 <ul class="list">
-                    <?php foreach (array_keys($eleves) as $etab): ?>
+                    
+                    <?php foreach (array_values($resultetab) as $etab): ?>
                         <li class="<?php echo ($selectedEtab == $etab) ? 'active' : ''; ?>">
-                            <a href="?etab_num=<?php echo $etab; ?>">
-                                <?php echo htmlspecialchars($db->getEtablissementsNomByProf($etab)); ?>
+                            <a href="?etab_num=<?php echo $etabsId; ?>">
+                                <?php 
+                                // Pass the $etab instead of $userNom
+                                echo htmlspecialchars($etab);
+                                ?>
                             </a>
                             <form action="NoodleML/controller/supprimer_etablissement.php" method="post" class="inline-form">
                                 <input type="hidden" name="etab_num" value="<?php echo $etab; ?>">

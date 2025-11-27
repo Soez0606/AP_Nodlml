@@ -144,17 +144,23 @@ class BDD
 
     public function getEtablissementsNomByProf($userNom)
     {
-        $stmt = $this->db->prepare('SELECT etablissement.nom FROM etablissement,classe WHERE classe.etablissement_num = etablissement.id AND classe.prof = :prof');
+        $stmt = $this->db->prepare('SELECT e.id, e.nom FROM etablissement AS e INNER JOIN classe as c ON c.etablissement_num = e.id WHERE c.prof = :prof');
         if (!$stmt)
         {
             throw new Exception('Failed to prepare statement : ' . $this->db->lastErrorMsg());
         }
-        $stmt->bindValue(':prof', $userNom, SQLITE3_INTEGER);
+        $stmt->bindValue(':prof', $userNom, SQLITE3_TEXT);
         $result = $stmt->execute();
         if ($result)
         {
-            $nom = $result->fetchArray(SQLITE3_ASSOC);
-            return $nom;
+            $etabs = [];
+            while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+                $etabs = [
+                    'id' => $row['id'],
+                    'nom' => $row['nom']
+                ];
+            }
+            return $etabs;
         } else {
             throw new Exception('Failed to execute query : ' . $this->db->lastErrorMsg());
         }
